@@ -18,11 +18,8 @@ duration = 8
 openai_max_tokens = 100
 openai_temperature = 0.8
 
-os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "keys/key.json"
-
-
-def validateNotEmpty(audio):
-    return np.max(np.abs(audio)) > threshold
+os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "path/to/key.json"
+os.environ["OPENAI_API_KEY"] = "your-key-here"
 
 
 def await_continue():
@@ -41,9 +38,9 @@ def record(dur):
             pass
 
     inp = sd.InputStream(
-            channels=1,
-            samplerate=frequency,
-            dtype='int16')
+        channels=1,
+        samplerate=frequency,
+        dtype='int16')
 
     inp.start()
     data, overflowed = inp.read(int(dur * frequency))
@@ -77,11 +74,11 @@ class Recorder:
                     await_continue()
             else:
                 audio = record(1)
-                if validateNotEmpty(audio):
+                if self.validateNotEmpty(audio):
                     self.rec_now = True
 
     def handle(self):
-        if not validateNotEmpty(self.rec):
+        if not self.validateNotEmpty(self.rec):
             print("Playback is empty!")
             return
 
@@ -134,6 +131,10 @@ class Recorder:
         response = self.speech_client.recognize(config=config, audio=au_to_send)
 
         return response
+
+    @staticmethod
+    def validateNotEmpty(audio):
+        return np.max(np.abs(audio)) > threshold
 
 
 if __name__ == "__main__":
